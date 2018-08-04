@@ -95,6 +95,11 @@ func (c *Cookies) Set(cookie *http.Cookie, signed bool) {
 	}
 }
 
+// GetKeygrip get the keygrip instance
+func (c *Cookies) GetKeygrip() *keygrip.Keygrip {
+	return c.kg
+}
+
 // New create a instance of cookies
 func New(req *http.Request, res http.ResponseWriter, opts *Options) *Cookies {
 	c := &Cookies{

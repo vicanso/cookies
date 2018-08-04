@@ -154,4 +154,11 @@ func TestCookies(t *testing.T) {
 			t.Fatalf("set unsigned cookie fail")
 		}
 	})
+
+	t.Run("get keygrip", func(t *testing.T) {
+		cookies := New(nil, nil, opts)
+		if cookies.GetKeygrip() == nil {
+			t.Fatalf("the keygrip should not be nil")
+		}
+	})
 }
