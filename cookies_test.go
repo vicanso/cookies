@@ -91,7 +91,7 @@ func TestCookies(t *testing.T) {
 		if cookies.Get(cookieName, true) != "" {
 			t.Fatalf("get cookie invalid signed should be empty")
 		}
-		if w.Header().Get(setCookie) != "jt.sig=" {
+		if w.Header().Get(setCookie) != "jt.sig=; Path=/; Domain=aslant.site; Max-Age=3600; HttpOnly; Secure" {
 			t.Fatalf("get cookie invalid signed shoule remove the sig cookie")
 		}
 	})

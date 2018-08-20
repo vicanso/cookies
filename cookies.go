@@ -68,10 +68,7 @@ func (c *Cookies) Get(name string, signed bool) string {
 	index := c.kg.Index(data, sigCookie.Value)
 	// not match, remove the sig key value
 	if index < 0 {
-		c.Set(&http.Cookie{
-			Name:  sigName,
-			Value: "",
-		}, false)
+		c.Set(c.CreateCookie(sigName, ""), false)
 		return ""
 	}
 	if index > 0 {
