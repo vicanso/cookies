@@ -23,7 +23,7 @@ func TestCookies(t *testing.T) {
 	}
 
 	t.Run("create cookie", func(t *testing.T) {
-		cookies := New(nil, nil, opts)
+		cookies := New(nil, opts)
 		cookie := cookies.CreateCookie("jt", "test")
 		if cookie.String() != "jt=test; Path=/; Domain=aslant.site; Max-Age=3600; HttpOnly; Secure" {
 			t.Fatalf("create cookie fail")
@@ -31,16 +31,18 @@ func TestCookies(t *testing.T) {
 	})
 
 	t.Run("get cookie unsigned", func(t *testing.T) {
-		cookies := New(nil, nil, opts)
+		cookies := New(nil, opts)
 		cookieName := "jt"
 		cookieValue := "myCookie"
 		jt := cookies.CreateCookie(cookieName, cookieValue)
 		r := httptest.NewRequest(http.MethodGet, "http://aslant.site/api/users/me", nil)
 		r.AddCookie(jt)
 		w := httptest.NewRecorder()
+		rw := NewHTTPReadWriter(r, w)
+		cookies.RW = rw
 
-		cookies.Request = r
-		cookies.Response = w
+		// cookies.Request = r
+		// cookies.Response = w
 
 		if cookies.Get(cookieName, false) != cookieValue {
 			t.Fatalf("get cookie unsigned fail")
@@ -48,16 +50,14 @@ func TestCookies(t *testing.T) {
 	})
 
 	t.Run("get cookie signed", func(t *testing.T) {
-		cookies := New(nil, nil, opts)
+		cookies := New(nil, opts)
 		cookieName := "jt"
 		cookieValue := "myCookie"
 		jt := cookies.CreateCookie(cookieName, cookieValue)
 		r := httptest.NewRequest(http.MethodGet, "http://aslant.site/api/users/me", nil)
 		r.AddCookie(jt)
 		w := httptest.NewRecorder()
-
-		cookies.Request = r
-		cookies.Response = w
+		cookies.RW = NewHTTPReadWriter(r, w)
 
 		if cookies.Get(cookieName, true) != "" {
 			t.Fatalf("get signed cookie should return empty without sig")
@@ -73,16 +73,16 @@ func TestCookies(t *testing.T) {
 	})
 
 	t.Run("get cookie invalid signed", func(t *testing.T) {
-		cookies := New(nil, nil, opts)
+		cookies := New(nil, opts)
+
 		cookieName := "jt"
 		cookieValue := "myCookie"
 		jt := cookies.CreateCookie(cookieName, cookieValue)
 		r := httptest.NewRequest(http.MethodGet, "http://aslant.site/api/users/me", nil)
 		r.AddCookie(jt)
 		w := httptest.NewRecorder()
-
-		cookies.Request = r
-		cookies.Response = w
+		rw := NewHTTPReadWriter(r, w)
+		cookies.RW = rw
 
 		sigCookieName := "jt.sig"
 		sigCookieValue := "ABCD"
@@ -97,16 +97,15 @@ func TestCookies(t *testing.T) {
 	})
 
 	t.Run("get signed cookie(not first key)", func(t *testing.T) {
-		cookies := New(nil, nil, opts)
+		cookies := New(nil, opts)
 		cookieName := "jt"
 		cookieValue := "myCookie"
 		jt := cookies.CreateCookie(cookieName, cookieValue)
 		r := httptest.NewRequest(http.MethodGet, "http://aslant.site/api/users/me", nil)
 		r.AddCookie(jt)
 		w := httptest.NewRecorder()
-
-		cookies.Request = r
-		cookies.Response = w
+		rw := NewHTTPReadWriter(r, w)
+		cookies.RW = rw
 
 		if cookies.Get(cookieName, true) != "" {
 			t.Fatalf("get signed cookie should return empty without sig")
@@ -129,7 +128,8 @@ func TestCookies(t *testing.T) {
 	t.Run("set unsigned cookie", func(t *testing.T) {
 		r := httptest.NewRequest(http.MethodGet, "http://aslant.site/api/users/me", nil)
 		w := httptest.NewRecorder()
-		cookies := New(r, w, opts)
+		rw := NewHTTPReadWriter(r, w)
+		cookies := New(rw, opts)
 		cookieName := "jt"
 		cookieValue := "myCookie"
 		jt := cookies.CreateCookie(cookieName, cookieValue)
@@ -143,7 +143,8 @@ func TestCookies(t *testing.T) {
 	t.Run("set signed cookie", func(t *testing.T) {
 		r := httptest.NewRequest(http.MethodGet, "http://aslant.site/api/users/me", nil)
 		w := httptest.NewRecorder()
-		cookies := New(r, w, opts)
+		rw := NewHTTPReadWriter(r, w)
+		cookies := New(rw, opts)
 		cookieName := "jt"
 		cookieValue := "myCookie"
 		jt := cookies.CreateCookie(cookieName, cookieValue)
@@ -156,7 +157,7 @@ func TestCookies(t *testing.T) {
 	})
 
 	t.Run("get keygrip", func(t *testing.T) {
-		cookies := New(nil, nil, opts)
+		cookies := New(nil, opts)
 		if cookies.GetKeygrip() == nil {
 			t.Fatalf("the keygrip should not be nil")
 		}

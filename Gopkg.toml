@@ -27,7 +27,7 @@
 
 [[constraint]]
   name = "github.com/vicanso/keygrip"
-  version = "0.0.1"
+  version = "0.0.2"
 
 [prune]
   go-tests = true

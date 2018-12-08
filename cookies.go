@@ -8,12 +8,23 @@ import (
 )
 
 type (
+	// HTTPReadWriter http read writer
+	HTTPReadWriter struct {
+		req  *http.Request
+		resp http.ResponseWriter
+	}
+	// ReadWriter cookie reader and writer
+	ReadWriter interface {
+		// Get get the cookie by name
+		Get(name string) (*http.Cookie, error)
+		// Set set the cookie
+		Set(cookie *http.Cookie) error
+	}
 	// Cookies cookies ins
 	Cookies struct {
-		Request  *http.Request
-		Response http.ResponseWriter
-		kg       *keygrip.Keygrip
-		opts     *Options
+		RW   ReadWriter
+		kg   *keygrip.Keygrip
+		opts *Options
 	}
 	// Options init options
 	Options struct {
@@ -31,6 +42,25 @@ const (
 	sigSuffix = ".sig"
 	setCookie = "Set-Cookie"
 )
+
+// Get get cookie from http request
+func (h *HTTPReadWriter) Get(name string) (*http.Cookie, error) {
+	return h.req.Cookie(name)
+}
+
+// Set set the cookie to http response
+func (h *HTTPReadWriter) Set(cookie *http.Cookie) error {
+	h.resp.Header().Add(setCookie, cookie.String())
+	return nil
+}
+
+// NewHTTPReadWriter new http readwriter
+func NewHTTPReadWriter(req *http.Request, resp http.ResponseWriter) *HTTPReadWriter {
+	return &HTTPReadWriter{
+		req:  req,
+		resp: resp,
+	}
+}
 
 // CreateCookie create a cookie
 func (c *Cookies) CreateCookie(name, value string) *http.Cookie {
@@ -52,7 +82,8 @@ func (c *Cookies) CreateCookie(name, value string) *http.Cookie {
 
 // Get get the value of cookie
 func (c *Cookies) Get(name string, signed bool) string {
-	cookie, _ := c.Request.Cookie(name)
+	rw := c.RW
+	cookie, _ := rw.Get(name)
 	if cookie == nil {
 		return ""
 	}
@@ -60,7 +91,7 @@ func (c *Cookies) Get(name string, signed bool) string {
 		return cookie.Value
 	}
 	sigName := name + sigSuffix
-	sigCookie, _ := c.Request.Cookie(sigName)
+	sigCookie, _ := rw.Get(sigName)
 	if sigCookie == nil {
 		return ""
 	}
@@ -81,9 +112,9 @@ func (c *Cookies) Get(name string, signed bool) string {
 
 // Set set the cookie
 func (c *Cookies) Set(cookie *http.Cookie, signed bool) {
-	header := c.Response.Header()
-	header.Add(setCookie, cookie.String())
+	c.RW.Set(cookie)
 	if signed {
+		// TODO 是否clone当前cookie来生成
 		name := cookie.Name
 		data := name + "=" + cookie.Value
 		sigName := name + sigSuffix
@@ -98,11 +129,10 @@ func (c *Cookies) GetKeygrip() *keygrip.Keygrip {
 }
 
 // New create a instance of cookies
-func New(req *http.Request, res http.ResponseWriter, opts *Options) *Cookies {
+func New(rw ReadWriter, opts *Options) *Cookies {
 	c := &Cookies{
-		Request:  req,
-		Response: res,
-		opts:     opts,
+		RW:   rw,
+		opts: opts,
 	}
 	if opts != nil && len(opts.Keys) != 0 {
 		c.kg = keygrip.New(opts.Keys)
