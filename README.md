@@ -35,7 +35,7 @@ c := cookies.New(nil, &cookie.Options{
 Creeat a http cookie by the opts
 
 ```go
-c := cookies.New(nil, nil, &cookie.Options{
+c := cookies.New(nil, &cookie.Options{
   Keys: []string{
     "A",
   },
@@ -50,7 +50,7 @@ cookie := c.CreateCookie("jt", "random-string")
 Get the cookie value, if signed is true, it will verify use `keys`.
 
 ```go
-c := New(nil, opts)
+c := cookies.New(nil, opts)
 cookieName := "jt"
 cookieValue := "myCookie"
 jt := c.CreateCookie(cookieName, cookieValue)
@@ -58,7 +58,7 @@ r := httptest.NewRequest(http.MethodGet, "http://aslant.site/api/users/me", nil)
 r.AddCookie(jt)
 w := httptest.NewRecorder()
 
-c.RW = NewHTTPReadWriter(r, w)
+c.RW = cookies.NewHTTPReadWriter(r, w)
 
 // "" there is not sig cookie exists
 fmt.Println(c.Get(cookieName, true))
@@ -71,8 +71,8 @@ Set the cookie, the signed is `true`, it will set a sig cookie too.
 ```go
 r := httptest.NewRequest(http.MethodGet, "http://aslant.site/api/users/me", nil)
 w := httptest.NewRecorder()
-rw := NewHTTPReadWriter(r, w)
-c := New(rw, opts)
+rw := cookies.NewHTTPReadWriter(r, w)
+c := cookies.New(rw, opts)
 cookieName := "jt"
 cookieValue := "myCookie"
 jt := c.CreateCookie(cookieName, cookieValue)
