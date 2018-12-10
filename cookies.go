@@ -16,9 +16,9 @@ type (
 	// ReadWriter cookie reader and writer
 	ReadWriter interface {
 		// Get get the cookie by name
-		Get(name string) (*http.Cookie, error)
-		// Set set the cookie
-		Set(cookie *http.Cookie) error
+		Cookie(name string) (*http.Cookie, error)
+		// SetCookie set the cookie
+		SetCookie(cookie *http.Cookie) error
 	}
 	// Cookies cookies ins
 	Cookies struct {
@@ -43,13 +43,13 @@ const (
 	setCookie = "Set-Cookie"
 )
 
-// Get get cookie from http request
-func (h *HTTPReadWriter) Get(name string) (*http.Cookie, error) {
+// Cookie get cookie from http request
+func (h *HTTPReadWriter) Cookie(name string) (*http.Cookie, error) {
 	return h.req.Cookie(name)
 }
 
-// Set set the cookie to http response
-func (h *HTTPReadWriter) Set(cookie *http.Cookie) error {
+// SetCookie set the cookie to http response
+func (h *HTTPReadWriter) SetCookie(cookie *http.Cookie) error {
 	h.resp.Header().Add(setCookie, cookie.String())
 	return nil
 }
@@ -83,7 +83,7 @@ func (c *Cookies) CreateCookie(name, value string) *http.Cookie {
 // Get get the value of cookie
 func (c *Cookies) Get(name string, signed bool) string {
 	rw := c.RW
-	cookie, _ := rw.Get(name)
+	cookie, _ := rw.Cookie(name)
 	if cookie == nil {
 		return ""
 	}
@@ -91,7 +91,7 @@ func (c *Cookies) Get(name string, signed bool) string {
 		return cookie.Value
 	}
 	sigName := name + sigSuffix
-	sigCookie, _ := rw.Get(sigName)
+	sigCookie, _ := rw.Cookie(sigName)
 	if sigCookie == nil {
 		return ""
 	}
@@ -112,7 +112,7 @@ func (c *Cookies) Get(name string, signed bool) string {
 
 // Set set the cookie
 func (c *Cookies) Set(cookie *http.Cookie, signed bool) {
-	c.RW.Set(cookie)
+	c.RW.SetCookie(cookie)
 	if signed {
 		// TODO 是否clone当前cookie来生成
 		name := cookie.Name
