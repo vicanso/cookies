@@ -111,16 +111,20 @@ func (c *Cookies) Get(name string, signed bool) string {
 }
 
 // Set set the cookie
-func (c *Cookies) Set(cookie *http.Cookie, signed bool) {
-	c.RW.SetCookie(cookie)
+func (c *Cookies) Set(cookie *http.Cookie, signed bool) (err error) {
+	err = c.RW.SetCookie(cookie)
+	if err != nil {
+		return
+	}
 	if signed {
 		// TODO 是否clone当前cookie来生成
 		name := cookie.Name
 		data := name + "=" + cookie.Value
 		sigName := name + sigSuffix
 		sigCookie := c.kg.Sign(data)
-		c.Set(c.CreateCookie(sigName, sigCookie), false)
+		err = c.Set(c.CreateCookie(sigName, sigCookie), false)
 	}
+	return
 }
 
 // GetKeygrip get the keygrip instance
