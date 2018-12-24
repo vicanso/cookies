@@ -39,7 +39,8 @@ type (
 )
 
 const (
-	sigSuffix = ".sig"
+	// SigSuffix the signed cookie's suffix
+	SigSuffix = ".sig"
 	setCookie = "Set-Cookie"
 )
 
@@ -90,7 +91,7 @@ func (c *Cookies) Get(name string, signed bool) string {
 	if !signed {
 		return cookie.Value
 	}
-	sigName := name + sigSuffix
+	sigName := name + SigSuffix
 	sigCookie, _ := rw.Cookie(sigName)
 	if sigCookie == nil {
 		return ""
@@ -120,7 +121,7 @@ func (c *Cookies) Set(cookie *http.Cookie, signed bool) (err error) {
 		// TODO 是否clone当前cookie来生成
 		name := cookie.Name
 		data := name + "=" + cookie.Value
-		sigName := name + sigSuffix
+		sigName := name + SigSuffix
 		sigCookie := c.kg.Sign(data)
 		err = c.Set(c.CreateCookie(sigName, sigCookie), false)
 	}
