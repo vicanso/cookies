@@ -64,8 +64,8 @@ func TestCookies(t *testing.T) {
 		}
 		kg := keygrip.New(opts.Keys)
 		sigCookieName := "jt.sig"
-		sigCookieValue := kg.Sign(cookieName + "=" + cookieValue)
-		sigCookie := cookies.CreateCookie(sigCookieName, sigCookieValue)
+		sigCookieValue := kg.Sign([]byte(cookieName + "=" + cookieValue))
+		sigCookie := cookies.CreateCookie(sigCookieName, string(sigCookieValue))
 		r.AddCookie(sigCookie)
 		if cookies.Get(cookieName, true) != cookieValue {
 			t.Fatalf("get cookie signed fail")
@@ -114,8 +114,8 @@ func TestCookies(t *testing.T) {
 			opts.Keys[1],
 		})
 		sigCookieName := "jt.sig"
-		sigCookieValue := kg.Sign(cookieName + "=" + cookieValue)
-		sigCookie := cookies.CreateCookie(sigCookieName, sigCookieValue)
+		sigCookieValue := kg.Sign([]byte(cookieName + "=" + cookieValue))
+		sigCookie := cookies.CreateCookie(sigCookieName, string(sigCookieValue))
 		r.AddCookie(sigCookie)
 		if cookies.Get(cookieName, true) != cookieValue {
 			t.Fatalf("get cookie signed fail")

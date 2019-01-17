@@ -96,8 +96,8 @@ func (c *Cookies) Get(name string, signed bool) string {
 	if sigCookie == nil {
 		return ""
 	}
-	data := name + "=" + cookie.Value
-	index := c.kg.Index(data, sigCookie.Value)
+	data := []byte(name + "=" + cookie.Value)
+	index := c.kg.Index(data, []byte(sigCookie.Value))
 	// not match, remove the sig key value
 	if index < 0 {
 		c.Set(c.CreateCookie(sigName, ""), false)
@@ -106,7 +106,7 @@ func (c *Cookies) Get(name string, signed bool) string {
 	if index > 0 {
 		// 对于sig匹配到的key大于0的，更新sig的值，提升后续判断性能
 		// 因为keygrip每次是按顺序判断
-		c.Set(c.CreateCookie(sigName, c.kg.Sign(data)), false)
+		c.Set(c.CreateCookie(sigName, string(c.kg.Sign(data))), false)
 	}
 	return cookie.Value
 }
@@ -120,10 +120,10 @@ func (c *Cookies) Set(cookie *http.Cookie, signed bool) (err error) {
 	if signed {
 		// TODO 是否clone当前cookie来生成
 		name := cookie.Name
-		data := name + "=" + cookie.Value
+		data := []byte(name + "=" + cookie.Value)
 		sigName := name + SigSuffix
 		sigCookie := c.kg.Sign(data)
-		err = c.Set(c.CreateCookie(sigName, sigCookie), false)
+		err = c.Set(c.CreateCookie(sigName, string(sigCookie)), false)
 	}
 	return
 }
